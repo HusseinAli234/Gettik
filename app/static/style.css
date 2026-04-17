@@ -1,7 +1,77 @@
-body {
-  min-height: 100vh;
+:root {
+  --bg: #f4f7ff;
+  --brand: #4c6fff;
+  --brand-dark: #2f4fe0;
+  --text-muted: #6b7280;
 }
 
-.card {
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at top right, #e8edff, transparent 40%), var(--bg);
+}
+
+.app-navbar {
+  background: linear-gradient(120deg, #1e2a78, #4c6fff);
+  box-shadow: 0 8px 30px rgba(34, 54, 140, 0.22);
+}
+
+.navbar-brand,
+.app-navbar .btn {
+  color: #fff;
+}
+
+.app-card {
+  border-radius: 1.25rem;
+  backdrop-filter: blur(6px);
+}
+
+.hero-card {
+  border-radius: 1.5rem;
+  background: #fff;
+  box-shadow: 0 16px 50px rgba(17, 24, 39, 0.08);
+}
+
+.hero-eyebrow {
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.form-control,
+.form-select {
+  border-radius: 0.9rem;
+  border-color: #d6ddff;
+}
+
+.btn-primary {
+  background: linear-gradient(120deg, var(--brand), #6e8bff);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(120deg, var(--brand-dark), var(--brand));
+}
+
+.option-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.9rem;
+  border: 1px solid #d6ddff;
+  background: #fff;
+  font-weight: 500;
+}
+
+.price-box {
+  background: #eef2ff;
+  border: 1px solid #d7defe;
   border-radius: 1rem;
+  padding: 1rem 1.15rem;
+}
+
+.modern-table thead th {
+  color: var(--text-muted);
+  font-weight: 600;
 }

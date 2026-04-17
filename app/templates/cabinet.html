@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Личный кабинет | Gettik{% endblock %}
+
+{% block content %}
+<section class="mb-4">
+  <div class="hero-card p-4 p-md-5">
+    <p class="text-uppercase hero-eyebrow mb-2">Личный кабинет</p>
+    <h1 class="display-6 fw-bold mb-2">Привет, {{ user.name }}!</h1>
+    <p class="text-secondary mb-0">Здесь хранится история ваших поездок. Создайте новую, если готовы к следующему приключению.</p>
+  </div>
+</section>
+
+<section class="mb-4">
+  <a href="/" class="btn btn-primary btn-lg">+ Создать поездку</a>
+</section>
+
+<section>
+  <div class="card app-card border-0 shadow-sm">
+    <div class="card-body p-4">
+      <h2 class="h4 mb-3">История поездок</h2>
+      {% if trips %}
+      <div class="table-responsive">
+        <table class="table align-middle modern-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Направление</th>
+              <th>Людей</th>
+              <th>Стоимость</th>
+              <th>Дата</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for trip in trips %}
+            <tr>
+              <td>#{{ trip.id }}</td>
+              <td>{{ trip.direction|capitalize }}</td>
+              <td>{{ trip.people_count }}</td>
+              <td>${{ trip.total_price }}</td>
+              <td>{{ trip.created_at.strftime('%d.%m.%Y %H:%M') if trip.created_at else '-' }}</td>
+              <td class="text-end"><a href="/trips/{{ trip.id }}" class="btn btn-sm btn-outline-primary">Открыть</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-secondary mb-0">Пока нет поездок. Создайте первую прямо сейчас 🚀</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
