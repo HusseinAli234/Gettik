@@ -58,8 +58,8 @@ async def startup_event() -> None:
         await conn.run_sync(Base.metadata.create_all)
 
 
-@app.get("/", response_class=HTMLResponse)
-async def create_trip_page(request: Request, session: AsyncSession = Depends(get_session)) -> HTMLResponse:
+@app.get("/", response_class=HTMLResponse, response_model=None)
+async def create_trip_page(request: Request, session: AsyncSession = Depends(get_session)) -> Response:
     user = await get_current_user(request, session)
     if user is None:
         return RedirectResponse(url="/login", status_code=303)
@@ -95,14 +95,14 @@ async def register_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request=request, name="register.html", context=template_context(request, error=None))
 
 
-@app.post("/register", response_class=HTMLResponse)
+@app.post("/register", response_class=HTMLResponse, response_model=None)
 async def register(
     request: Request,
     name: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
     session: AsyncSession = Depends(get_session),
-) -> HTMLResponse | RedirectResponse:
+) -> Response:
     if len(password) < 6:
         return templates.TemplateResponse(
             request=request,
@@ -133,13 +133,13 @@ async def login_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(request=request, name="login.html", context=template_context(request, error=None))
 
 
-@app.post("/login", response_class=HTMLResponse)
+@app.post("/login", response_class=HTMLResponse, response_model=None)
 async def login(
     request: Request,
     email: str = Form(...),
     password: str = Form(...),
     session: AsyncSession = Depends(get_session),
-) -> HTMLResponse | RedirectResponse:
+) -> Response:
     user = await session.scalar(select(User).where(User.email == email.lower().strip()))
     if user is None or not verify_password(password, user.password_hash):
         return templates.TemplateResponse(
@@ -159,8 +159,8 @@ async def logout(request: Request) -> RedirectResponse:
     return RedirectResponse(url="/login", status_code=303)
 
 
-@app.get("/cabinet", response_class=HTMLResponse)
-async def cabinet(request: Request, session: AsyncSession = Depends(get_session)) -> HTMLResponse | RedirectResponse:
+@app.get("/cabinet", response_class=HTMLResponse, response_model=None)
+async def cabinet(request: Request, session: AsyncSession = Depends(get_session)) -> Response:
     user = await get_current_user(request, session)
     if user is None:
         return RedirectResponse(url="/login", status_code=303)
@@ -176,7 +176,7 @@ async def cabinet(request: Request, session: AsyncSession = Depends(get_session)
     )
 
 
-@app.post("/price-preview", response_class=HTMLResponse)
+@app.post("/price-preview", response_class=HTMLResponse, response_model=None)
 async def price_preview(
     request: Request,
     direction: str = Form(...),
@@ -185,7 +185,7 @@ async def price_preview(
     food: bool = Form(False),
     activities: bool = Form(False),
     session: AsyncSession = Depends(get_session),
-) -> HTMLResponse | RedirectResponse:
+) -> Response:
     user = await get_current_user(request, session)
     if user is None:
         return RedirectResponse(url="/login", status_code=303)
@@ -204,7 +204,7 @@ async def price_preview(
     )
 
 
-@app.post("/trips", response_class=HTMLResponse)
+@app.post("/trips", response_class=HTMLResponse, response_model=None)
 async def create_trip(
     request: Request,
     direction: str = Form(...),
@@ -242,12 +242,12 @@ async def create_trip(
     return RedirectResponse(url=f"/trips/{trip.id}", status_code=303)
 
 
-@app.get("/trips/{trip_id}", response_class=HTMLResponse)
+@app.get("/trips/{trip_id}", response_class=HTMLResponse, response_model=None)
 async def trip_details(
     trip_id: int,
     request: Request,
     session: AsyncSession = Depends(get_session),
-) -> HTMLResponse | RedirectResponse:
+) -> Response:
     user = await get_current_user(request, session)
     if user is None:
         return RedirectResponse(url="/login", status_code=303)
