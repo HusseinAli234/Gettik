@@ -49,6 +49,30 @@
             />
           </div>
 
+          <div class="col-md-6">
+            <label for="start_date" class="form-label">Дата начала поездки</label>
+            <input
+              type="date"
+              id="start_date"
+              name="start_date"
+              value="{{ form.start_date }}"
+              min="{{ form.start_date }}"
+              class="form-control form-control-lg"
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Маршрут на карте</label>
+            <div class="d-grid gap-2">
+              <button type="button" class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#routeBuilderModal">
+                Построить маршрут
+              </button>
+              <input type="hidden" name="route_name" id="route_name" value="{{ form.route_name }}" />
+              <input type="hidden" name="route_data" id="route_data" value="{{ form.route_data }}" />
+              <small id="route-summary" class="text-secondary">Маршрут пока не выбран.</small>
+            </div>
+          </div>
+
           <div class="col-12">
             <label class="form-label">Опции</label>
             <div class="row g-3">
@@ -85,4 +109,168 @@
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="routeBuilderModal" tabindex="-1" aria-labelledby="routeBuilderModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="routeBuilderModalLabel">Построение маршрута (Mapbox)</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="mapbox_token" class="form-label">Mapbox Access Token</label>
+            <input type="text" id="mapbox_token" class="form-control" value="{{ mapbox_access_token }}" placeholder="pk.***" />
+            <small class="text-secondary">Можно взять в личном кабинете Mapbox.</small>
+          </div>
+          <div class="col-md-4">
+            <label for="route_from" class="form-label">Откуда</label>
+            <input type="text" id="route_from" class="form-control" placeholder="Москва, Арбат" />
+          </div>
+          <div class="col-md-4">
+            <label for="route_to" class="form-label">Куда</label>
+            <input type="text" id="route_to" class="form-control" placeholder="Москва, ВДНХ" />
+          </div>
+          <div class="col-12 d-flex gap-2">
+            <button type="button" class="btn btn-primary" id="build-route-btn">Построить</button>
+            <button type="button" class="btn btn-outline-secondary" id="save-route-btn" disabled>Сохранить маршрут</button>
+            <span id="route-builder-status" class="align-self-center text-secondary small"></span>
+          </div>
+          <div class="col-12">
+            <div id="route-map" class="route-map"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet" />
+<script>
+  (() => {
+    const modalEl = document.getElementById("routeBuilderModal");
+    const statusEl = document.getElementById("route-builder-status");
+    const summaryEl = document.getElementById("route-summary");
+    const saveBtn = document.getElementById("save-route-btn");
+    const routeNameInput = document.getElementById("route_name");
+    const routeDataInput = document.getElementById("route_data");
+    const tokenInput = document.getElementById("mapbox_token");
+    let map = null;
+    let currentRoute = null;
+    let markerFrom = null;
+    let markerTo = null;
+
+    function setStatus(message, isError = false) {
+      statusEl.textContent = message;
+      statusEl.classList.toggle("text-danger", isError);
+      statusEl.classList.toggle("text-secondary", !isError);
+    }
+
+    async function geocode(place, token) {
+      const query = encodeURIComponent(place);
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?limit=1&access_token=${token}`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error("Ошибка геокодирования.");
+      const data = await resp.json();
+      if (!data.features?.length) throw new Error(`Не нашли точку: ${place}`);
+      return data.features[0];
+    }
+
+    async function buildRoute() {
+      const token = tokenInput.value.trim();
+      const from = document.getElementById("route_from").value.trim();
+      const to = document.getElementById("route_to").value.trim();
+
+      if (!token || !from || !to) {
+        setStatus("Заполните токен, точку старта и точку назначения.", true);
+        return;
+      }
+
+      setStatus("Строим маршрут...");
+      saveBtn.disabled = true;
+
+      try {
+        const [fromFeature, toFeature] = await Promise.all([geocode(from, token), geocode(to, token)]);
+        const fromCoord = fromFeature.center;
+        const toCoord = toFeature.center;
+        const directionsUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${fromCoord[0]},${fromCoord[1]};${toCoord[0]},${toCoord[1]}?geometries=geojson&overview=full&access_token=${token}`;
+        const routeResp = await fetch(directionsUrl);
+        if (!routeResp.ok) throw new Error("Не удалось получить маршрут.");
+        const routeData = await routeResp.json();
+        if (!routeData.routes?.length) throw new Error("Маршрут не найден.");
+
+        const route = routeData.routes[0];
+        currentRoute = {
+          from: fromFeature.place_name,
+          to: toFeature.place_name,
+          distance_km: +(route.distance / 1000).toFixed(1),
+          duration_min: Math.round(route.duration / 60),
+          geometry: route.geometry,
+        };
+
+        if (!map) {
+          mapboxgl.accessToken = token;
+          map = new mapboxgl.Map({
+            container: "route-map",
+            style: "mapbox://styles/mapbox/streets-v12",
+            center: fromCoord,
+            zoom: 11,
+          });
+          map.on("load", () => {
+            map.addSource("route", { type: "geojson", data: { type: "Feature", geometry: currentRoute.geometry } });
+            map.addLayer({
+              id: "route-line",
+              type: "line",
+              source: "route",
+              paint: { "line-color": "#4c6fff", "line-width": 5 },
+            });
+          });
+        } else {
+          const source = map.getSource("route");
+          if (source) {
+            source.setData({ type: "Feature", geometry: currentRoute.geometry });
+          }
+        }
+
+        if (markerFrom) markerFrom.remove();
+        if (markerTo) markerTo.remove();
+        markerFrom = new mapboxgl.Marker({ color: "#16a34a" }).setLngLat(fromCoord).addTo(map);
+        markerTo = new mapboxgl.Marker({ color: "#dc2626" }).setLngLat(toCoord).addTo(map);
+
+        const bounds = new mapboxgl.LngLatBounds();
+        bounds.extend(fromCoord);
+        bounds.extend(toCoord);
+        map.fitBounds(bounds, { padding: 60 });
+
+        setStatus(`Маршрут готов: ${currentRoute.distance_km} км, ~${currentRoute.duration_min} мин.`);
+        saveBtn.disabled = false;
+      } catch (error) {
+        setStatus(error.message || "Ошибка построения маршрута.", true);
+      }
+    }
+
+    document.getElementById("build-route-btn").addEventListener("click", buildRoute);
+
+    saveBtn.addEventListener("click", () => {
+      if (!currentRoute) {
+        setStatus("Сначала постройте маршрут.", true);
+        return;
+      }
+      routeNameInput.value = `${currentRoute.from} → ${currentRoute.to}`;
+      routeDataInput.value = JSON.stringify(currentRoute);
+      summaryEl.textContent = `Маршрут: ${routeNameInput.value} (${currentRoute.distance_km} км, ~${currentRoute.duration_min} мин.)`;
+      bootstrap.Modal.getInstance(modalEl)?.hide();
+    });
+
+    modalEl.addEventListener("shown.bs.modal", () => {
+      if (map) {
+        setTimeout(() => map.resize(), 120);
+      }
+    });
+  })();
+</script>
 {% endblock %}
