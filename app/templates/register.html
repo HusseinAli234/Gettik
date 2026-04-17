@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Регистрация | Gettik{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card app-card border-0 shadow-lg">
+      <div class="card-body p-4 p-md-5">
+        <h1 class="h3 mb-2">Создайте аккаунт ✨</h1>
+        <p class="text-secondary mb-4">После регистрации вы получите личный кабинет и историю поездок.</p>
+
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="/register" class="vstack gap-3">
+          <div>
+            <label for="name" class="form-label">Имя</label>
+            <input type="text" class="form-control form-control-lg" id="name" name="name" required />
+          </div>
+          <div>
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control form-control-lg" id="email" name="email" required />
+          </div>
+          <div>
+            <label for="password" class="form-label">Пароль</label>
+            <input type="password" class="form-control form-control-lg" id="password" name="password" minlength="6" required />
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg w-100">Зарегистрироваться</button>
+        </form>
+
+        <p class="mt-4 text-center text-secondary mb-0">
+          Уже есть аккаунт? <a href="/login">Войти</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
