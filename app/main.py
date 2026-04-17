@@ -59,7 +59,7 @@ async def startup_event() -> None:
 
 
 @app.get("/", response_class=HTMLResponse)
-async def create_trip_page(request: Request, session: AsyncSession = Depends(get_session)) -> Response:
+async def create_trip_page(request: Request, session: AsyncSession = Depends(get_session)) -> HTMLResponse:
     user = await get_current_user(request, session)
     if user is None:
         return RedirectResponse(url="/login", status_code=303)
@@ -102,7 +102,7 @@ async def register(
     email: str = Form(...),
     password: str = Form(...),
     session: AsyncSession = Depends(get_session),
-) -> Response:
+) -> HTMLResponse | RedirectResponse:
     if len(password) < 6:
         return templates.TemplateResponse(
             request=request,
@@ -139,7 +139,7 @@ async def login(
     email: str = Form(...),
     password: str = Form(...),
     session: AsyncSession = Depends(get_session),
-) -> Response:
+) -> HTMLResponse | RedirectResponse:
     user = await session.scalar(select(User).where(User.email == email.lower().strip()))
     if user is None or not verify_password(password, user.password_hash):
         return templates.TemplateResponse(
@@ -160,7 +160,7 @@ async def logout(request: Request) -> RedirectResponse:
 
 
 @app.get("/cabinet", response_class=HTMLResponse)
-async def cabinet(request: Request, session: AsyncSession = Depends(get_session)) -> Response:
+async def cabinet(request: Request, session: AsyncSession = Depends(get_session)) -> HTMLResponse | RedirectResponse:
     user = await get_current_user(request, session)
     if user is None:
         return RedirectResponse(url="/login", status_code=303)
@@ -185,7 +185,7 @@ async def price_preview(
     food: bool = Form(False),
     activities: bool = Form(False),
     session: AsyncSession = Depends(get_session),
-) -> Response:
+) -> HTMLResponse | RedirectResponse:
     user = await get_current_user(request, session)
     if user is None:
         return RedirectResponse(url="/login", status_code=303)
@@ -247,7 +247,7 @@ async def trip_details(
     trip_id: int,
     request: Request,
     session: AsyncSession = Depends(get_session),
-) -> Response:
+) -> HTMLResponse | RedirectResponse:
     user = await get_current_user(request, session)
     if user is None:
         return RedirectResponse(url="/login", status_code=303)
