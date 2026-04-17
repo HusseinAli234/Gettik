@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Поездка #{{ trip.id }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h3 mb-3">Поездка #{{ trip.id }}</h1>
+
+        <ul class="list-group mb-3">
+          <li class="list-group-item d-flex justify-content-between"><span>Направление</span><strong>{{ trip.direction }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between"><span>Людей</span><strong>{{ trip.people_count }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between"><span>Транспорт</span><strong>{{ 'Да' if trip.transport else 'Нет' }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between"><span>Еда</span><strong>{{ 'Да' if trip.food else 'Нет' }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between"><span>Активности</span><strong>{{ 'Да' if trip.activities else 'Нет' }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between"><span>Итоговая стоимость</span><strong>${{ trip.total_price }}</strong></li>
+        </ul>
+
+        <label class="form-label">Ссылка для участников</label>
+        <input type="text" class="form-control" readonly value="{{ share_url }}" />
+
+        <a href="/" class="btn btn-outline-secondary mt-3">Создать новую поездку</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
