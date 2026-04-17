@@ -13,11 +13,13 @@
         </div>
 
         <ul class="list-group list-group-flush mb-4">
+          <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Начало поездки</span><strong>{{ trip.start_date.strftime('%d.%m.%Y') if trip.start_date else '-' }}</strong></li>
           <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Направление</span><strong>{{ trip.direction|capitalize }}</strong></li>
           <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Людей</span><strong>{{ trip.people_count }}</strong></li>
           <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Транспорт</span><strong>{{ 'Да' if trip.transport else 'Нет' }}</strong></li>
           <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Еда</span><strong>{{ 'Да' if trip.food else 'Нет' }}</strong></li>
           <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Активности</span><strong>{{ 'Да' if trip.activities else 'Нет' }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Маршрут</span><strong>{{ trip.route_name if trip.route_name else 'Не задан' }}</strong></li>
           <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Итоговая стоимость</span><strong class="text-primary">${{ trip.total_price }}</strong></li>
         </ul>
 

@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -27,10 +27,13 @@ class Trip(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     direction: Mapped[str] = mapped_column(String(80), nullable=False)
     people_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
 
     transport: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     food: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     activities: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    route_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    route_data: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     total_price: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

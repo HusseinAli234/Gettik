@@ -1,6 +1,8 @@
 import hashlib
 import hmac
+import json
 import os
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -59,6 +61,13 @@ async def run_legacy_migrations() -> None:
         columns = {row[1] for row in table_info.fetchall()}
         if "user_id" not in columns:
             await conn.execute(text("ALTER TABLE trips ADD COLUMN user_id INTEGER"))
+        if "start_date" not in columns:
+            await conn.execute(text("ALTER TABLE trips ADD COLUMN start_date DATE"))
+            await conn.execute(text("UPDATE trips SET start_date = DATE(created_at) WHERE start_date IS NULL"))
+        if "route_name" not in columns:
+            await conn.execute(text("ALTER TABLE trips ADD COLUMN route_name VARCHAR(120)"))
+        if "route_data" not in columns:
+            await conn.execute(text("ALTER TABLE trips ADD COLUMN route_data TEXT"))
 
 
 @app.on_event("startup")
@@ -93,10 +102,14 @@ async def create_trip_page(request: Request, session: AsyncSession = Depends(get
             form={
                 "direction": "city",
                 "people_count": 5,
+                "start_date": date.today().isoformat(),
                 "transport": False,
                 "food": False,
                 "activities": False,
+                "route_name": "",
+                "route_data": "",
             },
+            mapbox_access_token=os.getenv("MAPBOX_ACCESS_TOKEN", ""),
         ),
     )
 
@@ -220,9 +233,12 @@ async def create_trip(
     request: Request,
     direction: str = Form(...),
     people_count: int = Form(...),
+    start_date: date = Form(...),
     transport: bool = Form(False),
     food: bool = Form(False),
     activities: bool = Form(False),
+    route_name: str = Form(""),
+    route_data: str = Form(""),
     session: AsyncSession = Depends(get_session),
 ) -> RedirectResponse:
     user = await get_current_user(request, session)
@@ -237,13 +253,25 @@ async def create_trip(
         activities=activities,
     )
 
+    normalized_route_data: str | None = None
+    normalized_route_name: str | None = route_name.strip() or None
+    if route_data.strip():
+        try:
+            route_payload = json.loads(route_data)
+            normalized_route_data = json.dumps(route_payload, ensure_ascii=False)
+        except json.JSONDecodeError:
+            normalized_route_name = None
+
     trip = Trip(
         user_id=user.id,
         direction=direction,
         people_count=people_count,
+        start_date=start_date,
         transport=transport,
         food=food,
         activities=activities,
+        route_name=normalized_route_name,
+        route_data=normalized_route_data,
         total_price=breakdown.total,
     )
     session.add(trip)

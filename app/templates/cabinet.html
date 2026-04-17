@@ -28,6 +28,7 @@
               <th>Направление</th>
               <th>Людей</th>
               <th>Стоимость</th>
+              <th>Старт</th>
               <th>Дата</th>
               <th></th>
             </tr>
@@ -39,6 +40,7 @@
               <td>{{ trip.direction|capitalize }}</td>
               <td>{{ trip.people_count }}</td>
               <td>${{ trip.total_price }}</td>
+              <td>{{ trip.start_date.strftime('%d.%m.%Y') if trip.start_date else '-' }}</td>
               <td>{{ trip.created_at.strftime('%d.%m.%Y %H:%M') if trip.created_at else '-' }}</td>
               <td class="text-end"><a href="/trips/{{ trip.id }}" class="btn btn-sm btn-outline-primary">Открыть</a></td>
             </tr>
