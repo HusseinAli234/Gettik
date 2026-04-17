@@ -1,27 +1,28 @@
 {% extends 'base.html' %}
 
-{% block title %}Поездка #{{ trip.id }}{% endblock %}
+{% block title %}Поездка #{{ trip.id }} | Gettik{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h1 class="h3 mb-3">Поездка #{{ trip.id }}</h1>
+  <div class="col-lg-9">
+    <div class="card app-card border-0 shadow-sm">
+      <div class="card-body p-4 p-md-5">
+        <div class="d-flex justify-content-between flex-wrap gap-2 mb-4">
+          <h1 class="h3 mb-0">Поездка #{{ trip.id }}</h1>
+          <a href="/cabinet" class="btn btn-outline-primary">← К истории</a>
+        </div>
 
-        <ul class="list-group mb-3">
-          <li class="list-group-item d-flex justify-content-between"><span>Направление</span><strong>{{ trip.direction }}</strong></li>
-          <li class="list-group-item d-flex justify-content-between"><span>Людей</span><strong>{{ trip.people_count }}</strong></li>
-          <li class="list-group-item d-flex justify-content-between"><span>Транспорт</span><strong>{{ 'Да' if trip.transport else 'Нет' }}</strong></li>
-          <li class="list-group-item d-flex justify-content-between"><span>Еда</span><strong>{{ 'Да' if trip.food else 'Нет' }}</strong></li>
-          <li class="list-group-item d-flex justify-content-between"><span>Активности</span><strong>{{ 'Да' if trip.activities else 'Нет' }}</strong></li>
-          <li class="list-group-item d-flex justify-content-between"><span>Итоговая стоимость</span><strong>${{ trip.total_price }}</strong></li>
+        <ul class="list-group list-group-flush mb-4">
+          <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Направление</span><strong>{{ trip.direction|capitalize }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Людей</span><strong>{{ trip.people_count }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Транспорт</span><strong>{{ 'Да' if trip.transport else 'Нет' }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Еда</span><strong>{{ 'Да' if trip.food else 'Нет' }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Активности</span><strong>{{ 'Да' if trip.activities else 'Нет' }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between px-0"><span class="text-secondary">Итоговая стоимость</span><strong class="text-primary">${{ trip.total_price }}</strong></li>
         </ul>
 
         <label class="form-label">Ссылка для участников</label>
         <input type="text" class="form-control" readonly value="{{ share_url }}" />
-
-        <a href="/" class="btn btn-outline-secondary mt-3">Создать новую поездку</a>
       </div>
     </div>
   </div>
